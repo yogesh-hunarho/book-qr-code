@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Plus, Book, ChevronRight } from "lucide-react"
 import { GradeForm } from "./GradeForm"
 import { GenerateQRButton } from "./GenerateQRButton"
+import { EditGradeTitleButton } from "./EditGradeTitleButton"
 import { Navbar } from "@/components/Navbar"
 // import { DeleteGradeButton } from "./DeleteGradeButton"
 
@@ -63,15 +64,16 @@ export default async function AdminPage() {
                   <ChevronRight className="h-4 w-4" />
                 </Link>
                 <div className="flex gap-2">
+                  <EditGradeTitleButton
+                    gradeId={grade.id}
+                    currentTitle={grade.title}
+                    gradeValue={grade.grade}
+                  />
                   <GenerateQRButton
                     path={`/grade/${grade.grade}`}
                     fileName={`Grade-${grade.grade}-Full-Book`}
                   />
-                  {/* <DeleteGradeButton 
-                    gradeId={grade.id} 
-                    gradeName={`Grade ${grade.grade}`} 
-                  /> */}
-                </div>
+                 </div>
               </div>
             </div>
           ))}

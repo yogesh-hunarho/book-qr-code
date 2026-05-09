@@ -15,6 +15,16 @@ export async function createGrade(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function updateGradeTitle(gradeId: string, title: string) {
+  await prisma.grade.update({
+    where: { id: gradeId },
+    data: { title },
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/");
+}
+
 export async function createChapter(
   gradeId: string,
   formData: FormData,

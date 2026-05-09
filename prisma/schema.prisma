@@ -15,7 +15,7 @@ datasource db {
 
 model Grade {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  grade     Int       @unique
+  grade     Float     @unique
   title     String
   chapters  Chapter[]
   createdAt DateTime  @default(now())

@@ -8,12 +8,12 @@ export default async function ChapterPage({
   params: Promise<{ grade: string; chapter: string }>;
 }) {
   const { grade: gradeParam, chapter: chapterParam } = await params;
-  const gradeInt = parseInt(gradeParam);
+  const gradeFloat = parseFloat(gradeParam);
   const chapterNo = parseInt(chapterParam);
 
   const chapter = await prisma.chapter.findFirst({
     where: {
-      grade: { grade: gradeInt },
+      grade: { grade: gradeFloat },
       chapterNo: chapterNo,
     },
     include: {

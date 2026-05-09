@@ -9,10 +9,10 @@ export default async function GradePage({
   params: Promise<{ grade: string }>
 }) {
   const { grade: gradeParam } = await params
-  const gradeInt = parseInt(gradeParam)
+  const gradeFloat = parseFloat(gradeParam)
 
   const grade = await prisma.grade.findUnique({
-    where: { grade: gradeInt },
+    where: { grade: gradeFloat },
     include: {
       chapters: {
         orderBy: { chapterNo: "asc" },

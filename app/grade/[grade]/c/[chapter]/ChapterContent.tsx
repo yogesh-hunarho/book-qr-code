@@ -75,9 +75,9 @@ export const ChapterContent = ({ chapter }: ChapterContentProps) => {
       {/* Progress Header */}
       <div className="mb-8 flex flex-col items-center justify-between gap-6 md:flex-row">
         <div className="space-y-1 text-center md:text-left">
-          <h2 className="text-sm font-bold tracking-widest text-indigo-600 uppercase">
+          {/* <h2 className="text-sm font-bold tracking-widest text-indigo-600 uppercase">
             Chapter {chapter.chapterNo}
-          </h2>
+          </h2> */}
           <h1 className="text-2xl font-black md:text-4xl">{chapter.title}</h1>
         </div>
 
