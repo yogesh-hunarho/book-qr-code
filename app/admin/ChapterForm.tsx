@@ -11,6 +11,10 @@ interface ChapterFormProps {
 interface Module {
   title: string
   videoUrl: string
+  videoTitle: string
+  videoDescription: string
+  quizTitle: string
+  quizDescription: string
   quizData: any
 }
 
@@ -25,20 +29,29 @@ export const ChapterForm = ({ gradeId, chapterToEdit }: ChapterFormProps) => {
         chapterToEdit.modules.map((m: any) => ({
           title: m.title || "",
           videoUrl: m.videoUrl,
-          quizData: m.quiz
-            ? {
-                title: m.quiz.title,
-                totalQuestions: m.quiz.totalQuestions,
-                questions: m.quiz.questions,
-              }
-            : null,
+          videoTitle: m.videoTitle || "",
+          videoDescription: m.videoDescription || "",
+          quizTitle: m.quizTitle || "",
+          quizDescription: m.quizDescription || "",
+          quizData: m.quizData || null,
         }))
       )
     }
   }, [chapterToEdit, isOpen])
 
   const addModule = () => {
-    setModules([...modules, { title: "", videoUrl: "", quizData: null }])
+    setModules([
+      ...modules,
+      {
+        title: "",
+        videoUrl: "",
+        videoTitle: "",
+        videoDescription: "",
+        quizTitle: "",
+        quizDescription: "",
+        quizData: null,
+      },
+    ])
   }
 
   const removeModule = (index: number) => {
@@ -75,12 +88,8 @@ export const ChapterForm = ({ gradeId, chapterToEdit }: ChapterFormProps) => {
 
     // Validation
     for (let i = 0; i < modules.length; i++) {
-      if (!modules[i].videoUrl) {
-        alert(`Please provide Video URL for Module ${i + 1}`)
-        return
-      }
-      if (!modules[i].quizData) {
-        alert(`Please upload Quiz JSON for Module ${i + 1}`)
+      if (!modules[i].videoUrl && !modules[i].quizData) {
+        alert(`Please provide either a Video URL or Quiz JSON for Module ${i + 1}`)
         return
       }
     }
@@ -203,8 +212,8 @@ export const ChapterForm = ({ gradeId, chapterToEdit }: ChapterFormProps) => {
                         <Trash2 className="h-4 w-4" />
                       </button>
                     )}
-
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-8">
+                      {/* Module Title */}
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
                           Module Title (Optional)
@@ -219,82 +228,177 @@ export const ChapterForm = ({ gradeId, chapterToEdit }: ChapterFormProps) => {
                           className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-black outline-none focus:border-indigo-600"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
-                          Video URL (Drive Preview)
-                        </label>
-                        <input
-                          type="url"
-                          value={module.videoUrl}
-                          onChange={(e) =>
-                            updateModule(index, "videoUrl", e.target.value)
-                          }
-                          placeholder="https://drive.google.com/file/d/.../preview"
-                          className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-black outline-none focus:border-indigo-600"
-                        />
-                        <p className="text-md">Note: In google drive url replace <strong className="text-red-600">view</strong> with <strong className="text-green-600">preview</strong>e.g https://drive.google.com/file/d/preview</p>
-                      </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
-                        Quiz JSON
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="file"
-                          accept=".json"
-                          onChange={(e) => handleJsonUpload(index, e)}
-                          className="hidden"
-                          id={`json-upload-${index}`}
-                        />
-                        <label
-                          htmlFor={`json-upload-${index}`}
-                          className={`flex w-full cursor-pointer items-center justify-between rounded-xl border-2 border-dashed p-4 transition-all ${
-                            module.quizData
-                              ? "border-green-200 bg-green-50 text-green-600"
-                              : "border-border bg-white text-muted-foreground hover:bg-secondary"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            {module.quizData ? (
-                              <CheckCircle2 className="h-5 w-5" />
-                            ) : (
-                              <Upload className="h-5 w-5" />
-                            )}
-                            <span className="text-sm font-medium">
-                              {module.quizData
-                                ? `Uploaded: ${module.quizData.title}`
-                                : "Upload Quiz JSON"}
-                            </span>
+                      {/* Video Section */}
+                      <div className="space-y-4 pt-4 border-t border-border/50">
+                        <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Video Content</h4>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+                              Video Title (Optional)
+                            </label>
+                            <input
+                              type="text"
+                              value={module.videoTitle}
+                              onChange={(e) =>
+                                updateModule(index, "videoTitle", e.target.value)
+                              }
+                              placeholder="Individual title for this video..."
+                              className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-black outline-none focus:border-indigo-600"
+                            />
                           </div>
-                          {module.quizData && (
-                            <span className="text-xs opacity-60">
-                              {module.quizData.questions.length} Qs
-                            </span>
-                          )}
-                        </label>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+                              Video URL (Drive Preview) (Optional)
+                            </label>
+                            <input
+                              type="url"
+                              value={module.videoUrl}
+                              onChange={(e) =>
+                                updateModule(index, "videoUrl", e.target.value)
+                              }
+                              placeholder="https://drive.google.com/file/d/.../preview"
+                              className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-black outline-none focus:border-indigo-600"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+                            Video Description (Optional)
+                          </label>
+                          <textarea
+                            value={module.videoDescription}
+                            onChange={(e) =>
+                              updateModule(index, "videoDescription", e.target.value)
+                            }
+                            placeholder="Brief description of this video..."
+                            className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-black outline-none focus:border-indigo-600 min-h-[80px]"
+                          />
+                          <p className="text-[10px] text-muted-foreground">Note: In google drive url replace <strong className="text-red-600">view</strong> with <strong className="text-green-600">preview</strong></p>
+                        </div>
+                      </div>
+
+                      {/* Quiz Section */}
+                      <div className="space-y-4 pt-4 border-t border-border/50">
+                        <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Quiz Content</h4>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+                              Quiz Title (Optional)
+                            </label>
+                            <input
+                              type="text"
+                              value={module.quizTitle}
+                              onChange={(e) =>
+                                updateModule(index, "quizTitle", e.target.value)
+                              }
+                              placeholder="Individual title for this quiz..."
+                              className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-black outline-none focus:border-indigo-600"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+                              Quiz JSON
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="file"
+                                accept=".json"
+                                onChange={(e) => handleJsonUpload(index, e)}
+                                className="hidden"
+                                id={`json-upload-${index}`}
+                              />
+                              <label
+                                htmlFor={`json-upload-${index}`}
+                                className={`flex w-full cursor-pointer items-center justify-between rounded-xl border-2 border-dashed p-3 transition-all ${
+                                  module.quizData
+                                    ? "border-green-200 bg-green-50 text-green-600"
+                                    : "border-border bg-white text-muted-foreground hover:bg-secondary"
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {module.quizData ? (
+                                    <CheckCircle2 className="h-4 w-4" />
+                                  ) : (
+                                    <Upload className="h-4 w-4" />
+                                  )}
+                                  <span className="text-xs font-medium">
+                                    {module.quizData
+                                      ? `Uploaded: ${module.quizData.title}`
+                                      : "Upload JSON"}
+                                  </span>
+                                </div>
+                                {module.quizData && (
+                                  <span className="text-[10px] opacity-60">
+                                    {module.quizData.questions.length} Qs
+                                  </span>
+                                )}
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+                            Quiz Description (Optional)
+                          </label>
+                          <textarea
+                            value={module.quizDescription}
+                            onChange={(e) =>
+                              updateModule(index, "quizDescription", e.target.value)
+                            }
+                            placeholder="Brief description of this quiz..."
+                            className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-black outline-none focus:border-indigo-600 min-h-[80px]"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="grid gap-6 md:grid-cols-1">
+              <div className="space-y-6">
+                <h3 className="text-xl font-bold">STEM DIY Project</h3>
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
+                      STEM DIY Title (Optional)
+                    </label>
+                    <input
+                      name="stemTitle"
+                      type="text"
+                      defaultValue={chapterToEdit?.stemTitle}
+                      placeholder="e.g. Building a Birdhouse"
+                      className="w-full rounded-2xl border border-border bg-white px-5 py-4 text-black shadow-sm transition-all outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/10"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
+                      STEM DIY Video URL (Optional)
+                    </label>
+                    <input
+                      name="stemVideoUrl"
+                      type="url"
+                      defaultValue={chapterToEdit?.stemVideoUrl}
+                      placeholder="Optional STEM DIY video..."
+                      className="w-full rounded-2xl border border-border bg-white px-5 py-4 text-black shadow-sm transition-all outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/10"
+                    />
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
-                    STEM DIY Video URL
+                    STEM DIY Description (Optional)
                   </label>
-                  <input
-                    name="stemVideoUrl"
-                    type="url"
-                    defaultValue={chapterToEdit?.stemVideoUrl}
-                    placeholder="Optional STEM DIY video..."
-                    className="w-full rounded-2xl border border-border bg-white px-5 py-4 text-black shadow-sm transition-all outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/10"
+                  <textarea
+                    name="stemDescription"
+                    defaultValue={chapterToEdit?.stemDescription}
+                    placeholder="Short description of the STEM project..."
+                    className="w-full rounded-2xl border border-border bg-white px-5 py-4 text-black shadow-sm transition-all outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/10 min-h-[100px]"
                   />
                 </div>
-                <p className="text-md">Note: In google drive url replace <strong className="text-red-600">view</strong> with <strong className="text-green-600">preview</strong> <br />
-                e.g https://drive.google.com/file/d/11Abtdhkgf8IS8xQQthTxYi5LrqpAad-4/preview</p>
+                <p className="text-sm text-muted-foreground">
+                  Note: In google drive url replace <strong className="text-red-600">view</strong> with <strong className="text-green-600">preview</strong>. <br />
+                  e.g https://drive.google.com/file/d/11Abtdhkgf8IS8xQQthTxYi5LrqpAad-4/preview
+                </p>
               </div>
 
               <button

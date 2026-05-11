@@ -19,13 +19,6 @@ export default async function ChapterPage({
     include: {
       modules: {
         orderBy: { order: "asc" },
-        include: {
-          quiz: {
-            include: {
-              questions: true,
-            },
-          },
-        },
       },
       grade: true,
     },

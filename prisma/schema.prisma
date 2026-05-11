@@ -22,42 +22,30 @@ model Grade {
 }
 
 model Chapter {
-  id           String          @id @default(auto()) @map("_id") @db.ObjectId
-  gradeId      String          @db.ObjectId
-  grade        Grade           @relation(fields: [gradeId], references: [id])
-  chapterNo    Int
-  title        String
-  stemVideoUrl String?
-  modules      ChapterModule[]
-  createdAt    DateTime        @default(now())
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  gradeId         String          @db.ObjectId
+  grade           Grade           @relation(fields: [gradeId], references: [id])
+  chapterNo       Int
+  title           String
+  stemVideoUrl    String?
+  stemTitle       String?
+  stemDescription String?
+  modules         ChapterModule[]
+  createdAt       DateTime        @default(now())
 }
 
 model ChapterModule {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  chapterId String   @db.ObjectId
-  chapter   Chapter  @relation(fields: [chapterId], references: [id])
-  title     String?
-  videoUrl  String
-  order     Int
-  quiz      Quiz?
-  createdAt DateTime @default(now())
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  chapterId        String   @db.ObjectId
+  chapter          Chapter  @relation(fields: [chapterId], references: [id])
+  title            String?
+  videoUrl         String?
+  videoTitle       String?
+  videoDescription String?
+  quizData         Json?
+  quizTitle        String?
+  quizDescription  String?
+  order            Int
+  createdAt        DateTime @default(now())
 }
 
-model Quiz {
-  id             String        @id @default(auto()) @map("_id") @db.ObjectId
-  moduleId       String        @unique @db.ObjectId
-  module         ChapterModule @relation(fields: [moduleId], references: [id])
-  title          String
-  totalQuestions Int
-  questions      Question[]
-}
-
-model Question {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  quizId        String   @db.ObjectId
-  quiz          Quiz     @relation(fields: [quizId], references: [id])
-  question      String
-  options       Json
-  correctAnswer String
-  hint          String?
-}

@@ -5,106 +5,73 @@ import { useEffect, useState } from "react"
 
 interface MediaViewerProps {
   videoUrl?: string | null
+  title?: string | null
+  description?: string | null
 }
 
-export const MediaViewer = ({ videoUrl }: MediaViewerProps) => {
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [hasStarted, setHasStarted] = useState(false)
-
-  useEffect(() => {
-    const handler = () => setIsFullscreen(!!document.fullscreenElement)
-    document.addEventListener("fullscreenchange", handler)
-    return () => document.removeEventListener("fullscreenchange", handler)
-  }, [])
-
-  const toggleFullscreen = () => {
-    const el = document.getElementById("video-container")
-    if (!document.fullscreenElement) {
-      if (el?.requestFullscreen) el.requestFullscreen()
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen()
-        setHasStarted(false)
-      }
-    }
-  }
-
+export const MediaViewer = ({ videoUrl, title, description }: MediaViewerProps) => {
   if (!videoUrl) {
     return (
-      <div className="flex min-h-[300px] flex-col items-center justify-center space-y-4 rounded-3xl border border-white/10 bg-black/50 text-white/30">
-        <PlayCircle className="h-16 w-16 opacity-20" />
-        <p>No video available yet.</p>
+      <div className="flex min-h-[400px] flex-col items-center justify-center space-y-4 rounded-[3rem] border border-white/10 bg-secondary/30 text-muted-foreground backdrop-blur-xl">
+        <div className="rounded-full bg-secondary p-6 shadow-inner">
+          <PlayCircle className="h-12 w-12 opacity-20" />
+        </div>
+        <p className="font-medium tracking-wide">No resource available yet.</p>
       </div>
     )
   }
 
+  const isDrive = videoUrl.includes("drive.google.com")
+  const isYoutube = videoUrl.includes("youtube.com") || videoUrl.includes("youtu.be")
+  const isCanva = videoUrl.includes("canva.com")
+
   return (
-    <div className="relative w-full overflow-hidden bg-black shadow-2xl">
-      {/* Aspect Ratio Wrapper */}
-      <div className="relative h-0 w-full pb-[56.25%]">
-        <div
-          id="video-container"
-          className={`group/video absolute inset-0 h-full w-full overflow-hidden bg-black ${isFullscreen ? "z-[9999]" : ""}`}
-        >
-          <iframe
-            src={`${videoUrl}${videoUrl.includes("?") ? "&" : "?"}autoplay=${hasStarted ? 1 : 0}`}
-            className={`absolute inset-0 h-full w-full border-0 ${isFullscreen ? "h-screen w-screen" : ""}`}
-            allow="autoplay; fullscreen"
-            allowFullScreen
-          />
-
-          {/* First Click Overlay for Mobile */}
-          {!hasStarted && !isFullscreen && (
-            <div
-              className="absolute inset-0 z-20 flex cursor-pointer items-center justify-center bg-black/40 transition-colors hover:bg-black/20 md:hidden"
-              onClick={() => {
-                setHasStarted(true)
-                toggleFullscreen()
-              }}
-            >
-              <div className="flex flex-col items-center gap-4">
-                <div className="rounded-full bg-indigo-600 p-6 text-white shadow-2xl transition-transform hover:scale-110 active:scale-95">
-                  <PlayCircle className="h-6 w-6" />
-                </div>
-                <span className="text-xs font-bold tracking-widest text-white uppercase drop-shadow-lg">
-                  Tap to Play Fullscreen
-                </span>
+    <div className="group relative overflow-hidden rounded-[3.5rem] border border-white/10 bg-[#0a0a0c] p-1 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10">      
+      <div className="relative flex min-h-[350px] flex-col items-center justify-center px-6 py-10 text-center md:px-10">
+        <div className="mb-10 relative group-hover:scale-105 transition-transform duration-500">
+          <div className="absolute inset-0 animate-pulse rounded-full bg-indigo-500/30 blur-2xl" />
+          <div className="relative flex h-28 w-28 items-center justify-center rounded-[2rem] border border-white/20 bg-white/5 shadow-2xl backdrop-blur-2xl">
+            <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-white/10 to-transparent" />
+            {isYoutube ? (
+              <PlayCircle className="relative h-12 w-12 text-red-500 filter drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
+            ) : isCanva ? (
+              <FileText className="relative h-12 w-12 text-cyan-400 filter drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]" />
+            ) : isDrive ? (
+              <div className="relative h-12 w-12 flex items-center justify-center">
+                <div className="h-10 w-10 border-4 border-yellow-400 rounded-lg border-t-green-500 border-r-blue-500 shadow-lg" />
               </div>
-            </div>
-          )}
+            ) : (
+              <ExternalLink className="relative h-12 w-12 text-indigo-400" />
+            )}
+          </div>
+        </div>
 
-          {/* Indicator Overlay (hidden in fullscreen) */}
-          {!isFullscreen && (
-            <div className="pointer-events-none absolute top-3 left-3 z-10 flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/40 px-2 py-1 text-[10px] font-bold text-white/70 backdrop-blur-md md:gap-2 md:px-3 md:py-1.5 md:text-xs">
-              <PlayCircle className="h-3 w-3 text-indigo-400 md:h-3.5 md:w-3.5" />
-              VIDEO LESSON
-            </div>
+        <div className="max-w-3xl space-y-6">
+          <h3 className="text-3xl font-bold tracking-tight capitalize text-white md:text-4xl lg:text-5xl leading-[1.1]">
+            {title || "Watch Lesson Video"}
+          </h3>
+          
+          {description && (
+            <p className="mx-auto max-w-xl text-sm text-white/50 leading-relaxed md:text-lg font-medium">
+              {description}
+            </p>
           )}
+        </div>
 
-          {/* Fullscreen Controls */}
-          {isFullscreen && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                toggleFullscreen()
-              }}
-              className="absolute top-6 left-6 z-[10000] flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 py-3 font-bold text-white backdrop-blur-xl transition-all hover:bg-white/20"
-            >
-              <RotateCcw className="h-5 w-5" />
-              Exit Fullscreen
-            </button>
-          )}
-
-          {/* Mobile Play Hint Overlay */}
-          {!isFullscreen && (
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover/video:opacity-100 md:hidden">
-              <div className="scale-75 rounded-full bg-indigo-600 p-4 text-white shadow-2xl transition-transform group-active/video:scale-90">
-                <PlayCircle className="h-8 w-8" />
-              </div>
-            </div>
-          )}
+        <div className="mt-12 flex flex-col items-center gap-6">
+          <a
+            href={videoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group/btn relative flex items-center gap-4 overflow-hidden rounded-4xl bg-indigo-600 px-12 py-6 text-xl font-bold text-white transition-all hover:bg-indigo-500 hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(79,70,229,0.3)]"
+          >
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
+            <span>Open in New Tab</span>
+            <ExternalLink className="h-6 w-6 transition-transform group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" />
+          </a>
         </div>
       </div>
     </div>
   )
 }
+

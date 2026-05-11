@@ -21,13 +21,6 @@ export default async function GradeDetailPage({
         include: {
           modules: {
             orderBy: { order: "asc" },
-            include: {
-              quiz: {
-                include: {
-                  questions: true,
-                },
-              },
-            },
           },
         },
       },
@@ -67,10 +60,6 @@ export default async function GradeDetailPage({
                 {grade.chapters.length}
               </span>
             </h2>
-            <GenerateQRButton
-              path={`/grade/${grade.grade}`}
-              fileName={`Grade-${grade.grade}`}
-            />
           </div>
 
           <div className="grid gap-4">
@@ -101,6 +90,10 @@ export default async function GradeDetailPage({
                 </div>
                 <div className="flex items-center gap-2">
                   <ChapterForm gradeId={grade.id} chapterToEdit={chapter} />
+                  <GenerateQRButton
+                    path={`/grade/${grade.grade}/c/${chapter.chapterNo}`}
+                    fileName={`Grade-${grade.grade}-${chapter.chapterNo}`}
+                  />
                   <DeleteChapterButton
                     chapterId={chapter.id}
                     gradeId={grade.id}

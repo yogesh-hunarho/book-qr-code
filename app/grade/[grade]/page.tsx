@@ -28,12 +28,8 @@ export default async function GradePage({
     <div className="container mx-auto px-4 py-12">
       <div className="mx-auto max-w-5xl space-y-12">
         <div className="space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-600">
-            <Book className="h-4 w-4" />
-            Grade {grade.grade}
-          </div>
-          <h1 className="text-4xl font-bold md:text-6xl">{grade.title}</h1>
-          <p className="max-w-3xl text-xl text-muted-foreground">
+          <h1 className="text-3xl font-bold md:text-4xl">{grade.title}</h1>
+          <p className="max-w-3xl text-lg text-muted-foreground">
             Dive into the world of {grade.title}. Master each chapter through
             interactive videos, comprehensive notes, and challenging quizzes.
           </p>
@@ -62,12 +58,6 @@ export default async function GradePage({
                     <h3 className="line-clamp-1 text-lg font-bold transition-colors group-hover:text-indigo-600 md:text-xl">
                       {chapter.title}
                     </h3>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground md:text-sm">
-                      <span className="flex items-center gap-1">
-                        <GraduationCap className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                        Quiz Included
-                      </span>
-                    </div>
                   </div>
                 </div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground transition-all group-hover:translate-x-2 group-hover:text-indigo-600 md:h-6 md:w-6" />

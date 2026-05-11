@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   PlayCircle,
@@ -23,9 +23,14 @@ export const ChapterContent = ({ chapter }: ChapterContentProps) => {
   const hasStem = !!chapter.stemVideoUrl
 
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0)
+  const firstModule = hasModules ? chapter.modules[0] : null
   const [activeStep, setActiveStep] = useState<
     "video" | "quiz" | "stem" | "result" | "none"
-  >(hasModules ? "video" : hasStem ? "stem" : "none")
+  >(
+    hasModules 
+      ? (firstModule?.videoUrl ? "video" : "quiz") 
+      : hasStem ? "stem" : "none"
+  )
   const [videoCompleted, setVideoCompleted] = useState(false)
 
   const { completeChapter, isChapterCompleted, setQuizScore } =
@@ -49,8 +54,7 @@ export const ChapterContent = ({ chapter }: ChapterContentProps) => {
     }
   }, [currentModuleIndex, activeStep, isAlreadyDone])
 
-  const handleQuizComplete = (finalScore: number) => {
-    // We could store per-module scores if needed, but for now we'll just track completion
+  const handleQuizComplete = useCallback((finalScore: number) => {
     if (isLastModule) {
       if (chapter.stemVideoUrl) {
         setActiveStep("stem")
@@ -60,10 +64,27 @@ export const ChapterContent = ({ chapter }: ChapterContentProps) => {
         setActiveStep("result")
       }
     } else {
-      setCurrentModuleIndex((prev) => prev + 1)
-      setActiveStep("video")
+      const nextIndex = currentModuleIndex + 1
+      const nextModule = chapter.modules[nextIndex]
+      setCurrentModuleIndex(nextIndex)
+      
+      if (nextModule.videoUrl) {
+        setActiveStep("video")
+      } else if (nextModule.quizData) {
+        setActiveStep("quiz")
+      } else {
+        // This case shouldn't happen with our validation, but just in case
+        handleQuizComplete(finalScore)
+      }
     }
-  }
+  }, [isLastModule, chapter, currentModuleIndex, setQuizScore, completeChapter])
+
+  // Auto-progress if no quiz is present
+  useEffect(() => {
+    if (videoCompleted && activeStep === "video" && !currentModule?.quizData && !isAlreadyDone) {
+      handleQuizComplete(100)
+    }
+  }, [videoCompleted, activeStep, currentModule, isAlreadyDone, handleQuizComplete])
 
   const handleStemComplete = () => {
     completeChapter(chapter.id)
@@ -73,36 +94,39 @@ export const ChapterContent = ({ chapter }: ChapterContentProps) => {
   return (
     <div className="container mx-auto max-w-6xl px-3 py-4 md:px-4 md:py-8">
       {/* Progress Header */}
-      <div className="mb-8 flex flex-col items-center justify-between gap-6 md:flex-row">
-        <div className="space-y-1 text-center md:text-left">
-          {/* <h2 className="text-sm font-bold tracking-widest text-indigo-600 uppercase">
-            Chapter {chapter.chapterNo}
-          </h2> */}
-          <h1 className="text-2xl font-black md:text-4xl">{chapter.title}</h1>
+      <div className="mb-12 flex flex-col items-center justify-between gap-8 md:flex-row">
+        <div className="space-y-3 text-center md:text-left">
+          <h1 className="text-3xl font-black tracking-tight text-slate-900 md:text-5xl">{chapter.title}</h1>
         </div>
 
         {(hasModules || hasStem) && (
-          <div className="flex flex-wrap justify-center gap-2 rounded-3xl border border-indigo-100 bg-indigo-50/50 p-2 backdrop-blur-md">
+          <div className="flex flex-wrap justify-center gap-3 rounded-[2rem] border border-slate-200 bg-white p-3 shadow-xl shadow-slate-200/50">
             {chapter.modules.map((m: any, i: number) => (
               <div key={m.id} className="flex items-center gap-2">
                 <button
                   disabled={i > currentModuleIndex && !isAlreadyDone}
                   onClick={() => {
                     setCurrentModuleIndex(i)
-                    setActiveStep("video")
+                    setActiveStep(chapter.modules[i].videoUrl ? "video" : "quiz")
                   }}
-                  className={`flex h-10 w-10 items-center justify-center rounded-full transition-all md:h-12 md:w-12 ${
+                  className={`relative flex h-12 w-12 items-center justify-center rounded-full font-bold transition-all md:h-14 md:w-14 ${
                     i === currentModuleIndex
-                      ? "bg-indigo-600 text-white shadow-lg"
+                      ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/40"
                       : i < currentModuleIndex || isAlreadyDone
-                        ? "bg-green-500 text-white"
-                        : "bg-white text-muted-foreground opacity-50"
+                        ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                        : "bg-slate-50 text-slate-300"
                   }`}
                 >
                   {i < currentModuleIndex || isAlreadyDone ? (
-                    <CheckCircle2 className="h-5 w-5" />
+                    <CheckCircle2 className="h-6 w-6" />
                   ) : (
-                    <span className="text-sm font-bold">{i + 1}</span>
+                    <span className="text-lg">{i + 1}</span>
+                  )}
+                  {i === currentModuleIndex && (
+                    <motion.div
+                      layoutId="nav-glow"
+                      className="absolute inset-0 rounded-full bg-indigo-400/20 blur-md"
+                    />
                   )}
                 </button>
               </div>
@@ -115,15 +139,15 @@ export const ChapterContent = ({ chapter }: ChapterContentProps) => {
                     activeStep !== "stem")
                 }
                 onClick={() => setActiveStep("stem")}
-                className={`flex h-10 w-10 items-center justify-center rounded-full transition-all md:h-12 md:w-12 ${
+                className={`flex h-12 w-12 items-center justify-center rounded-full font-bold transition-all md:h-14 md:w-14 ${
                   activeStep === "stem"
-                    ? "bg-indigo-600 text-white shadow-lg"
+                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/40"
                     : isAlreadyDone
-                      ? "bg-green-500 text-white"
-                      : "bg-white text-muted-foreground opacity-50"
+                      ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                      : "bg-slate-50 text-slate-300"
                 }`}
               >
-                <Play className="h-5 w-5" />
+                <Play className="h-6 w-6" />
               </button>
             )}
           </div>
@@ -142,63 +166,69 @@ export const ChapterContent = ({ chapter }: ChapterContentProps) => {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-6"
             >
-              <div className="space-y-2">
-                <h3 className="flex items-center gap-2 text-xl font-bold md:text-2xl">
-                  {activeStep === "video" ? (
-                    <>
-                      <PlayCircle className="h-6 w-6 text-indigo-600" />
-                      {currentModule.title ||
-                        `Module ${currentModuleIndex + 1}`}
-                    </>
-                  ) : (
-                    <>
-                      <Play className="h-6 w-6 text-red-600" />
-                      STEM DIY Project
-                    </>
-                  )}
-                </h3>
-              </div>
-
               <MediaViewer
                 videoUrl={
                   activeStep === "video"
                     ? currentModule?.videoUrl
                     : chapter.stemVideoUrl
                 }
+                title={
+                  activeStep === "video"
+                    ? (currentModule.videoTitle || currentModule.title)
+                    : chapter.stemTitle
+                }
+                description={
+                  activeStep === "video"
+                    ? currentModule.videoDescription
+                    : chapter.stemDescription
+                }
               />
 
-              <div className="glass-card flex flex-col items-center justify-between gap-6 border-indigo-500/10 bg-indigo-600/5 p-6 md:flex-row md:p-8">
-                <div className="space-y-1 text-center md:text-left">
-                  <h3 className="text-lg font-bold md:text-xl">
-                    {activeStep === "video"
-                      ? "Ready for the module quiz?"
-                      : "Finished the STEM project?"}
-                  </h3>
-                  <p className="text-sm text-muted-foreground md:text-base">
-                    {videoCompleted
-                      ? "Great! You can now move to the next step."
-                      : "Please watch the video to unlock the next step."}
-                  </p>
+              {(activeStep === "stem" || currentModule.quizData) && (
+                <div className="relative overflow-hidden rounded-[2.5rem] border border-indigo-100 bg-white p-8 shadow-[0_20px_50_rgba(79,70,229,0.05)] md:p-10">
+                  <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-indigo-50 opacity-[0.3]" />
+                  <div className="relative flex flex-col items-center justify-between gap-8 md:flex-row">
+                    <div className="space-y-2 text-center md:text-left">
+                      <h3 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+                        {activeStep === "video"
+                          ? (currentModule.quizData ? "Ready for the module quiz?" : "Module complete!")
+                          : "Finished the STEM project?"}
+                      </h3>
+                      <p className="text-base text-slate-500 md:text-lg">
+                        {videoCompleted
+                          ? "Great! You can now move to the next step."
+                          : "Watch the resource above to unlock the next step."}
+                      </p>
+                    </div>
+                    <button
+                      disabled={!videoCompleted}
+                      onClick={() => {
+                        if (activeStep === "video") {
+                          if (currentModule.quizData) {
+                            setActiveStep("quiz")
+                          } else {
+                            handleQuizComplete(100)
+                          }
+                        } else {
+                          handleStemComplete()
+                        }
+                      }}
+                      className={`group/btn flex w-full items-center justify-center gap-3 rounded-[1.5rem] px-10 py-5 text-lg font-bold transition-all md:w-auto ${
+                        videoCompleted
+                          ? "bg-indigo-600 text-white shadow-xl shadow-indigo-500/30 hover:bg-indigo-500 hover:scale-105 active:scale-95"
+                          : "cursor-not-allowed bg-slate-100 text-slate-400"
+                      }`}
+                    >
+                      <span>
+                        {activeStep === "video"
+                          ? (currentModule.quizData ? "Take Module Quiz" : (isLastModule && !chapter.stemVideoUrl ? "Finish Chapter" : "Next Module"))
+                          : "Finish Chapter"}
+                      </span>
+                      <ArrowRight className={`h-6 w-6 transition-transform ${videoCompleted ? "group-hover/btn:translate-x-1" : ""}`} />
+                    </button>
+                  </div>
                 </div>
-                <button
-                  disabled={!videoCompleted}
-                  onClick={() =>
-                    activeStep === "video"
-                      ? setActiveStep("quiz")
-                      : handleStemComplete()
-                  }
-                  className={`flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-3 font-bold transition-all md:w-auto md:px-10 md:py-4 ${
-                    videoCompleted
-                      ? "bg-indigo-600 text-white shadow-xl shadow-indigo-500/30 hover:bg-indigo-500"
-                      : "cursor-not-allowed bg-secondary text-muted-foreground/30"
-                  }`}
-                >
-                  {activeStep === "video"
-                    ? "Take Module Quiz"
-                    : "Finish Chapter"}
-                  <ArrowRight className="h-5 w-5" />
-                </button>
-              </div>
+              )}
             </motion.div>
           )}
 
@@ -215,15 +245,15 @@ export const ChapterContent = ({ chapter }: ChapterContentProps) => {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold">
-                    Module {currentModuleIndex + 1} Quiz
+                    {currentModule.quizTitle || `Module ${currentModuleIndex + 1} Quiz`}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    {currentModule.quiz.title}
+                    {currentModule.quizDescription || currentModule.quizData.title}
                   </p>
                 </div>
               </div>
               <QuizComponent
-                quiz={currentModule.quiz}
+                quiz={currentModule.quizData}
                 onComplete={handleQuizComplete}
                 onCancel={() => setActiveStep("video")}
               />
